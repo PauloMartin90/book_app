@@ -12,24 +12,28 @@
 </head>
 <body>
     
-    <body>
-        <nav>Fancy Kat Books Store</nav>
-        <div>
-          <h1>This is the show page</h1>
-          <% books.forEach(book=> { %>
-            <img src="<%= book.image %>" alt="">
-            <h2>
-              <%= book.title %>
-            </h2>
-            <h3>
-              <%= book.authors %>
-            </h3>
-            <p>
-              <%= book.description %>
-            </p>
-            <% }) %>
-        </div>
-      </body>
-
+  
+        <h1>FancyKat Book Store</h1>
+        <ul>
+          <% for(let book in books){ %>
+          
+          <li>
+            <img src='<%= books[book].img%>'>
+            <h3><%= books[book].bookTitle %></h3>
+            <p><%= books[book].authors %></p>
+            <p><%= books[book].book_description %></p>
+            <p><%= books[book].isbn %></p>
+            <form action='/books' method='POST'>
+              <input type='hidden' name='img' value='<%= books[book].img%>'>
+              <input type='hidden' name='bookTitle' value='<%= books[book].bookTitle%>'>
+              <input type='hidden' name='authors' value='<%= books[book].authors%>'>
+              <input type='hidden' name='book_description' value='<%= books[book].book_description%>'>
+              <input type='hidden' name='isbn' value='<%= books[book].isbn%>'>
+              <input type='submit' value ='Save Book'>
+            </form>
+          </li>
+          
+          <% } %>
+        </ul>
 </body>
 </html>
