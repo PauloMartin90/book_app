@@ -1,4 +1,10 @@
+img {
+    height: 200px;
+    width: 200px;
+    margin-left: 50px;
+}
 
-
-
-
+h3 {
+    width: 250px;
+    margin-left: 20px;
+}

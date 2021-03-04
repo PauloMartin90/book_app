@@ -5,7 +5,7 @@ const express = require('express');
 const superagent = require('superagent');
 require('dotenv').config();
 const pg = require('pg');
-
+const methodOverride = require('method-override');
 
 // ============== App ===================================
 const app = express();
@@ -14,115 +14,127 @@ const client = new pg.Client(DATABASE_URL);
 const PORT = process.env.PORT || 3111;
 
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname + '/public'));
 app.set('view engine', 'ejs');
+app.use(methodOverride('_method'));
+
 
 
 // ============== Routes ================================
 
 
-app.get('/', getHomepage); //finished 1st // lab 1st
-app.get('/searches/new', getSearchPages); //finished 1st // lab 1st
-app.post('/searches', showSearches); // finished 2nd // lab 3rd
-
+app.get('/', getHomepage);
 app.get('/books/:id', getSingleBook)
-app.get('/books', addBook)
+app.post('/searches', showSearches); 
+app.get('/searches/new', getSearchPages); 
+app.post('/books', addBook)
+app.put('/books/:id', putSingleBook);
+app.delete('/books/:id', deleteSingleBook);
 
-// app.put('/task/1', updateSingleTask);
-// app.delete('/task/1', deleteSingleTask);
 
-// Callbacks
+
+// Homepage
   function getHomepage (req, res) {
     const sqlString = 'SELECT * FROM book;';
-    client.query(sqlString).then(result => {
-      console.log(result.rows)
-      res.render('./pages/index.ejs', {books: result.rows})
+    client.query(sqlString)
+    .then(result => {
+      res.render('pages/index.ejs', {books: result.rows})
+    }).catch(errorThatComesBack => {
+        res.render('pages/error.ejs');
+        console.log(errorThatComesBack);
     });
   }
 
   function getSingleBook (req, res) {
-    console.log(req.params);
-    const sqlString = 'SELECT * FROM book WHERE id = $1'
+    const sqlString = 'SELECT * FROM book WHERE id=$1;';
+    const sqlArr = [req.params.id];
+
+    client.query(sqlString, sqlArr)
+    .then( result => {
+      const ejsObject = { books: result.rows[0] };
+      res.render('pages/books/detail.ejs', ejsObject);
+    })
+    .catch(errorThatComesBack => {
+      res.render('pages/error.ejs');
+      console.log(errorThatComesBack);
+    });
+  };
+
+  // Save Book Route
+  function addBook (req, res) {
+    const sqlString = 'INSERT INTO book (img, bookTitle, authors, book_description, isbn) VALUES ($1, $2, $3, $4, $5) RETURNING id;';
+    const sqlArray = [req.body.img, req.body.bookTitle, req.body.authors, req.body.book_description, req.body.isbn];
+    client.query(sqlString, sqlArray)
+    .then(result => {
+      const ejsObject = { books: req.body };
+      ejsObject.books.id = result.rows[0].id;
+      res.render('pages/books/detail.ejs', ejsObject);
+    })
+    .catch(errorThatComesBack => {
+      res.render('pages/error.ejs');
+      console.log(errorThatComesBack);
+    });
+  };
+
+// ---------------------------Search----------------------------------
+  function getSearchPages (req, res) {
+    res.render('pages/searches/new.ejs');
+  };
+
+  function showSearches (req, res) {
+      const url = `https://www.googleapis.com/books/v1/volumes?q=in${req.body.search}:${req.body.name}`;
+      superagent.get(url)
+        .then(results => {
+          const books = results.body.items.map(book => new Book(book));
+          res.render('pages/searches/show.ejs', {books: books})
+        })
+        .catch(errorThatComesBack => {
+          res.render('pages/error.ejs');
+          console.log(errorThatComesBack);
+        });
+  }
+  // -----------------------------------------------------------------
+  
+  
+  // Delete Book Route
+  function deleteSingleBook (req, res){
+    const sqlString = 'DELETE FROM book WHERE id=$1;';
     const sqlArr = [req.params.id];
     client.query(sqlString, sqlArr).then(result => {
-      const ejsObject = {books: result.rows[0]};
-      res.render('pages/books/detail.ejs', ejsObject);
-    });
-  };
-
-
-  function addBook (req, res) {
-    const sqlString = 'INSERT INTO book (img, bookTitle, authors, book_description, isbn) VALUES ($1, $2, $3, $4, $5) RETURNING id';
-    const sqlArray = [req.body.img, req.body.bookTitle, req.body.authors, req.body.book_description, req.body.isbn];
-    client.query(sqlString, sqlArray).then(result => {
-      const ejsObject = {books: req.body}
-      res.render('pages/books/detail.ejs', ejsObject);
-    });
-  };
-
-
-
-
-    // function getSingleBook (req, res) {
-    //   res.render("pages/books/details.ejs")
-    // }
-
-
-    // function addBook (req, res) {
-    //   res.render("pages/books:id")
-    // }
-
-
-
-
-
-
-
-
-
-      function updateSingleTask(req, res) {
-        // purpose: update a tasks
-        //  like lab: show them the detail view of that specific task (/task/1)
-        res.send('updateSingleTask')
-
-      }
+    console.log("🚀 ~ file: server.js ~ line 98 ~ client.query ~ result", result)
       
-      function deleteSingleTask(req, res) {
-        // purpose: delete a task, send them to the all tasks page
-        res.send('deleteSingleTask')
-
-      }
-
-
-  
-  function getSearchPages (req, res) {
-    res.render('./pages/searches/new.ejs');
-  };
-
-function showSearches (req, res) {
-    const url = `https://www.googleapis.com/books/v1/volumes?q=in${req.body.search}:${req.body.name}`;
-    superagent.get(url)
-      .then(results => {
-        const books = results.body.items.map(book => new Book(book));
-        console.log(books)
-        console.log(url);
-        res.render('pages/searches/show.ejs', {books: books})
-      }).catch(error => {
-        res.render('pages/error.ejs');
-        console.log('something went wrong', error);
-      })
-}
-  
-
-  function Book (object) {
-  console.log("🚀 ~ file: server.js ~ line 117 ~ Book ~ object", object)
-    
-    this.img = object.volumeInfo.imageLinks ? object.volumeInfo.imageLinks.smallThumbnail: "https://i.imgur.com/J5LVHEL.jpg";
-    this.bookTitle = object.volumeInfo.title;
-    this.authors = object.volumeInfo.authors ? object.volumeInfo.authors[0] : 'unknown author'
-    this.book_description = object.volumeInfo.description ? object.volumeInfo.description : 'Sorry, no description available.';
-    this.isbn = object.volumeInfo.industryIdentifiers ? object.volumeInfo.industryIdentifiers[0].identifier : 'No ISBN Available' ;
+      res.redirect('/');
+    })
+    .catch(errorThatComesBack => {
+      res.render('pages/error.ejs');
+      console.log(errorThatComesBack);
+    });
   }
 
+  // Update Book Route
+  function putSingleBook(req, res){
+    const sqlString = 'UPDATE book SET img=$1, bookTitle=$2, authors=$3, book_description=$4, isbn=$5 WHERE id=$6;';
+    const sqlArr = [req.body.img, req.body.bookTitle, req.body.authors, req.body.book_description, req.body.isbn, req.params.id];
+    client.query(sqlString, sqlArr).then(result => {
+      res.redirect(`/books/${req.params.id}`);
+    })
+    .catch(errorThatComesBack => {
+      res.render('pages/error.ejs');
+      console.log(errorThatComesBack);
+  
+    });
+  }
+
+
+  // Book Constructor
+  function Book (object) {
+      this.img = object.volumeInfo.imageLinks ? object.volumeInfo.imageLinks.smallThumbnail: "https://i.imgur.com/J5LVHEL.jpg";
+      this.bookTitle = object.volumeInfo.title;
+      this.authors = object.volumeInfo.authors ? object.volumeInfo.authors[0] : 'unknown author'
+      this.book_description = object.volumeInfo.description ? object.volumeInfo.description : 'Sorry, no description available.';
+      this.isbn = object.volumeInfo.industryIdentifiers ? object.volumeInfo.industryIdentifiers[0].identifier : 'No ISBN Available' ;
+        }
+      
 
 
 

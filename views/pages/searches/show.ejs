@@ -16,24 +16,27 @@
         <h1>FancyKat Book Store</h1>
         <ul>
           <% for(let book in books){ %>
-          
-          <li>
-            <img src='<%= books[book].img%>'>
-            <h3><%= books[book].bookTitle %></h3>
-            <p><%= books[book].authors %></p>
-            <p><%= books[book].book_description %></p>
-            <p><%= books[book].isbn %></p>
-            <form action='/books' method='POST'>
-              <input type='hidden' name='img' value='<%= books[book].img%>'>
-              <input type='hidden' name='bookTitle' value='<%= books[book].bookTitle%>'>
-              <input type='hidden' name='authors' value='<%= books[book].authors%>'>
-              <input type='hidden' name='book_description' value='<%= books[book].book_description%>'>
-              <input type='hidden' name='isbn' value='<%= books[book].isbn%>'>
-              <input type='submit' value ='Save Book'>
-            </form>
-          </li>
-          
-          <% } %>
+    
+            <li>
+              <div>   
+                <h3><%= books[book].bookTitle %></h3>
+                <img src='<%= books[book].img%>'>
+                <p><%= books[book].authors %></p>
+                <p><%= books[book].book_description %></p>
+                <p><%= books[book].isbn %></p>
+              </div>
+           
+              <form action='/books' method='POST'>
+                <input type='hidden' name='img' value='<%= books[book].img%>'>
+                <input type='hidden' name='bookTitle' value='<%= books[book].bookTitle%>'>
+                <input type='hidden' name='authors' value='<%= books[book].authors%>'>
+                <input type='hidden' name='book_description' value='<%= books[book].book_description%>'>
+                <input type='hidden' name='isbn' value='<%= books[book].isbn%>'>
+                <input id="form_button" type='submit' value ='Save Book'>
+              </form>
+            </li>
+            
+            <% } %>
         </ul>
 </body>
 </html>

@@ -13,13 +13,34 @@
 <body>
   <h1>Book Details</h1>
   <ul>
-      <li>
-        <img src='<%= books.img%>'>
+    <li>
+
+      <div>
         <h3><%= books.bookTitle %></h3>
+        <img src='<%= books.img%>'>
         <p><%= books.authors %></p>
         <p><%= books.book_description %></p>
         <p><%=books.isbn%></p>
-      </li>
-  </ul>
+        <a href='/'><button>Back to Home</button></a>
+      </div>
+      
+      <form action='/books/<%= books.id %>?_method=PUT' method='POST'>
+        <label>Image URL:</label>
+        <input type='text' name='img' value='<%= books.img%>'>
+        <label>Book Title:</label>
+        <input type='text' name='bookTitle' value='<%= books.bookTitle%>'>
+        <label>Authors:</label>
+        <input type='text' name='authors' value='<%= books.authors%>'>
+        <label>Book Description:</label>
+        <input type='text' name='book_description' value='<%= books.book_description%>'>
+        <label>ISBN:</label>
+        <input type='text' name='isbn' value='<%= books.isbn%>'>
+        <input id="form_button" type='submit' value ='Update Details'>
+      </form>
+      <form action='/books/<%= books.id %>?_method=DELETE' method='POST'>
+        <input id="form_button" type='submit' value='Delete This book'>
+      </form>
+    </li>
+</ul>
 </body>
 </html>
